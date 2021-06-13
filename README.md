@@ -12,8 +12,9 @@ go get github.com/romshark/watchserve
 ## How to use
 
 ```
-watchserve -host :8080 -f myfile.txt
+watchserve -host localhost:8080 -f myfile.txt
 ```
+
 - `-help` prints help.
 - `-f` specifies the file to watch.
 - `-host` specifies the server address to listen on.
