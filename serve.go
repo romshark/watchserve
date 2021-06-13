@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	_ "embed"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/pkg/browser"
 	sse "github.com/r3labs/sse/v2"
 )
 
@@ -18,7 +20,7 @@ var frameHTML []byte
 
 func main() {
 	fFilePath := flag.String("f", "", "file path")
-	fHost := flag.String("host", ":8080", "host address")
+	fHost := flag.String("host", "127.0.0.1:8080", "host address")
 	flag.Parse()
 
 	if *fFilePath == "" {
@@ -34,8 +36,21 @@ func main() {
 	sseSrv.CreateStream(streamUpdates)
 	defer sseSrv.Close()
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	go watchFile(*fFilePath, sseSrv, "updates")
-	listenHTTP(*fHost, *fFilePath, fileContents, sseSrv)
+	go listenHTTP(*fHost, *fFilePath, fileContents, sseSrv)
+
+	{
+		u := "http://" + *fHost
+		if err := browser.OpenURL(u); err != nil {
+			log.Printf("opening %q browser: %v", u, err)
+		}
+	}
+
+	// Wait indefinitely
+	wg.Wait()
 }
 
 func watchFile(
