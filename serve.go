@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	_ "embed"
 
+	"github.com/bep/debounce"
 	"github.com/fsnotify/fsnotify"
 	"github.com/pkg/browser"
 	sse "github.com/r3labs/sse/v2"
@@ -21,6 +23,7 @@ var frameHTML []byte
 func main() {
 	fFilePath := flag.String("f", "", "file path")
 	fHost := flag.String("host", "127.0.0.1:8080", "host address")
+	fDebounce := flag.Duration("debounce", 0, "debounce duration")
 	flag.Parse()
 
 	if *fFilePath == "" {
@@ -39,7 +42,7 @@ func main() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	go watchFile(*fFilePath, sseSrv, "updates")
+	go watchFile(*fFilePath, sseSrv, "updates", *fDebounce)
 	go listenHTTP(*fHost, *fFilePath, fileContents, sseSrv)
 
 	{
@@ -57,6 +60,7 @@ func watchFile(
 	filePath string,
 	sseSrv *sse.Server,
 	streamUpdates string,
+	debounceDur time.Duration,
 ) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -68,6 +72,14 @@ func watchFile(
 	}
 
 	var updateMsgWrite = []byte("write")
+	publishEvent := func() {
+		sseSrv.Publish(streamUpdates, &sse.Event{
+			Data: updateMsgWrite,
+		})
+	}
+
+	debounced := debounce.New(debounceDur)
+
 	for {
 		select {
 		case e := <-watcher.Events:
@@ -75,9 +87,7 @@ func watchFile(
 				continue
 			}
 			log.Print("file change detected")
-			sseSrv.Publish(streamUpdates, &sse.Event{
-				Data: updateMsgWrite,
-			})
+			debounced(publishEvent)
 		case err := <-watcher.Errors:
 			log.Fatal("watching file:", err)
 		}
