@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>watched file</title>
+	</head>
+	<script>
+		function getMeta() {
+			fetch("/meta").then(response => {
+  				return response.json()
+			}).then(meta => {
+				console.debug("fetched meta:", meta)
+				document.title=meta["file-path"]
+			}).catch(e => {
+				console.error("fetching meta:", e)
+			})
+		}
+
+		getMeta()
+
+		const eventStreamPath = "/events?stream=updates"
+		const evtSource = new EventSource(eventStreamPath)
+		evtSource.onmessage = function(event) {
+			console.debug("received update event:", event.data)
+			document.getElementById('main').contentWindow.location.reload()
+		}
+		evtSource.onopen = function(e) {
+			console.debug("listening for updates on", eventStreamPath)
+		}
+		evtSource.onerror = function(err) {
+			console.error("subscribing to update stream:", err)
+		}
+	</script>
+	<style>
+		html, body {
+			margin: 0px;
+		}
+		iframe {
+			width: 100vw;
+			height: 100vh;
+			border: 0px;
+		}
+	</style>
+	<body>
+		<iframe id="main" src="/file"></iframe>
+	</body>
+</html>
