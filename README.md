@@ -1,3 +1,6 @@
+<a href="https://github.com/romshark/watchserve/actions?query=workflow%3ACI">
+  <img src="https://github.com/romshark/watchserve/workflows/CI/badge.svg" alt="GitHub Actions: CI">
+</a>
 <a href="https://goreportcard.com/report/github.com/romshark/watchserve">
   <img src="https://goreportcard.com/badge/github.com/romshark/watchserve" alt="GoReportCard">
 </a>
