@@ -1,3 +1,7 @@
+<a href="https://goreportcard.com/report/github.com/romshark/watchserve">
+  <img src="https://goreportcard.com/badge/github.com/romshark/watchserve" alt="GoReportCard">
+</a>
+
 # watchserve
 [watchserve](https://github.com/romshark/watchserve) is an HTTP file server that's watching the served file for updates and automatically reloads the page in any modern JavaScript-capable browser.
 
