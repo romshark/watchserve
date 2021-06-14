@@ -23,6 +23,11 @@ var frameHTML []byte
 func main() {
 	fFilePath := flag.String("f", "", "file path")
 	fHost := flag.String("host", "127.0.0.1:8080", "host address")
+	fNoRedirect := flag.Bool(
+		"no-redirect",
+		false,
+		"disables automatic redirect to the browser on start",
+	)
 	fDebounce := flag.Duration("debounce", 0, "debounce duration")
 	flag.Parse()
 
@@ -45,7 +50,7 @@ func main() {
 	go watchFile(*fFilePath, sseSrv, "updates", *fDebounce)
 	go listenHTTP(*fHost, *fFilePath, fileContents, sseSrv)
 
-	{
+	if !*fNoRedirect {
 		u := "http://" + *fHost
 		if err := browser.OpenURL(u); err != nil {
 			log.Printf("opening %q browser: %v", u, err)
