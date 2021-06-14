@@ -18,3 +18,5 @@ watchserve -host localhost:8080 -f myfile.txt
 - `-help` prints help.
 - `-f` specifies the file to watch.
 - `-host` specifies the server address to listen on.
+- `-debounce` specifies how much time needs to pass after the last change was detected before a reload is triggered.
+- `-no-redirect` disables automatic redirect to the browser on start.
