@@ -16,10 +16,10 @@ Alternatively, you can use the Go toolchain to install watchserve.
 
 ### Through the Go toolchain
 
-1. Download the latest version of [Go](https://golang.org/).
+1. Download the latest version of [Go](https://go.dev/).
 2. Run the following command:
 ```
-go get github.com/romshark/watchserve
+go install github.com/romshark/watchserve@latest
 ```
 
 ## How to use
