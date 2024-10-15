@@ -5,7 +5,6 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
@@ -34,10 +33,6 @@ func main() {
 	if *fFilePath == "" {
 		log.Fatal("missing file path, use the -f flag")
 	}
-	fileContents, err := os.ReadFile(*fFilePath)
-	if err != nil {
-		log.Fatal("reading file:", err)
-	}
 
 	sseSrv := sse.New()
 	const streamUpdates = "updates"
@@ -48,7 +43,7 @@ func main() {
 	wg.Add(1)
 
 	go watchFile(*fFilePath, sseSrv, "updates", *fDebounce)
-	go listenHTTP(*fHost, *fFilePath, fileContents, sseSrv)
+	go listenHTTP(*fHost, *fFilePath, sseSrv)
 
 	if !*fNoRedirect {
 		u := "http://" + *fHost
@@ -102,7 +97,6 @@ func watchFile(
 func listenHTTP(
 	host string,
 	filePath string,
-	fileContents []byte,
 	sseSrv *sse.Server,
 ) {
 	const (
@@ -131,7 +125,7 @@ func listenHTTP(
 			log.Fatal("writing meta JSON:", err)
 		}
 	})
-	mux.HandleFunc(pathSSE, sseSrv.HTTPHandler)
+	mux.HandleFunc(pathSSE, sseSrv.ServeHTTP)
 
 	log.Printf("listening on %s", host)
 	if err := http.ListenAndServe(host, mux); err != nil {

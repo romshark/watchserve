@@ -1,38 +1,33 @@
 on: [push, pull_request]
 name: CI
 jobs:
-  build-test-lint:
+  test:
     runs-on: ubuntu-latest
     steps:
-    # PREPARE
-    - name: Install Go 1.16
-      uses: actions/setup-go@v2
-      with:
-        go-version: 1.16
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Install Go 1.23.2
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.23.2"
+          check-latest: true
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    # BUILD
-    - name: Build
-      env:
-        GOPROXY: "https://proxy.golang.org"
-      run: go build
+      # Test
+      - name: Test
+        run: go test -v -race ./...
+      - name: Calculate coverage
+        run: go test -v -covermode=count -coverprofile=coverage.out
+      - name: Convert coverage.out to coverage.lcov
+        uses: jandelgado/gcov2lcov-action@v1.0.9
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.github_token }}
+          path-to-lcov: coverage.lcov
+      - name: Run go vet
+        continue-on-error: true
+        run: go vet ./...
 
-    # LINT
-    - name: Install golint
-      run: go get golang.org/x/lint/golint
-
-    - name: Install golangci-lint
-      run: curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(go env GOPATH)/bin v1.40.1
-
-    - name: go vet
-      continue-on-error: true
-      run: go vet ./...
-
-    - name: golangci-lint
-      continue-on-error: true
-      run: golangci-lint run ./...
-
-    - name: golint
-      continue-on-error: true
-      run: golint -set_exit_status $(go list ./...)
+      # Try compile
+      - name: Compile
+        run: go build -o /dev/null .
