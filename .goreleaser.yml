@@ -16,8 +16,8 @@ before:
     - go generate ./...
 
 builds:
-  - id: templier
-    binary: templier
+  - id: watchserve
+    binary: watchserve
     main: .
     env:
       - CGO_ENABLED=0
